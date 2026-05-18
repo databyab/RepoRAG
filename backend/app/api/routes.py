@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from functools import lru_cache
 from typing import AsyncIterator
 
@@ -91,3 +92,36 @@ async def ask_question_stream(payload: QuestionRequest) -> StreamingResponse:
         yield f"event: done\ndata: {json.dumps(final_payload)}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@router.delete("/repos/{repo_id}")
+async def delete_repository(repo_id: str) -> dict[str, str]:
+    """Delete a repository's vector store and raw data."""
+    from app.core.config import get_settings
+    
+    settings = get_settings()
+    vector_dir = settings.vector_store_dir / repo_id
+    raw_dir = settings.raw_repos_dir / repo_id
+    
+    deleted_items = []
+    
+    # Delete vector store
+    if vector_dir.exists():
+        shutil.rmtree(vector_dir)
+        deleted_items.append("vector_store")
+    
+    # Delete raw repository
+    if raw_dir.exists():
+        shutil.rmtree(raw_dir)
+        deleted_items.append("raw_repository")
+    
+    if not deleted_items:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Repository '{repo_id}' not found"
+        )
+    
+    return {
+        "message": f"Successfully deleted {repo_id}",
+        "deleted": ", ".join(deleted_items)
+    }

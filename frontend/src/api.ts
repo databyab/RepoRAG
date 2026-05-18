@@ -70,6 +70,11 @@ class APIClient {
       }
     }
   }
+
+  async deleteRepository(repo_id: string): Promise<{ message: string; deleted: string }> {
+    const response = await this.client.delete(`/repos/${repo_id}`)
+    return response.data
+  }
 }
 
 const apiBaseUrl =

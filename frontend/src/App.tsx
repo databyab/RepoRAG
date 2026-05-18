@@ -18,6 +18,11 @@ function App() {
     total_chunks: number
     total_files: number
   } | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteMessage, setDeleteMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
 
   // Question State
   const [question, setQuestion] = useState('')
@@ -58,6 +63,44 @@ function App() {
       setIngestMessage({ type: 'error', text: errorMessage })
     } finally {
       setIngestLoading(false)
+    }
+  }
+
+  const handleDeleteRepository = async () => {
+    if (!repoId) {
+      setDeleteMessage({ type: 'error', text: 'No repository to delete.' })
+      return
+    }
+
+    if (!window.confirm(`Are you sure you want to delete "${repoId}"? This cannot be undone.`)) {
+      return
+    }
+
+    setDeleteLoading(true)
+    setDeleteMessage(null)
+
+    try {
+      await api.deleteRepository(repoId)
+      setDeleteMessage({
+        type: 'success',
+        text: `Successfully deleted "${repoId}"`,
+      })
+      // Reset state after successful deletion
+      setTimeout(() => {
+        setRepoId(null)
+        setRepoStats(null)
+        setRepoUrl('')
+        setBranch('')
+        setDeleteMessage(null)
+        setQuestion('')
+        setResponse(null)
+      }, 2000)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to delete repository'
+      setDeleteMessage({ type: 'error', text: errorMessage })
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -202,6 +245,28 @@ function App() {
               <span>•</span>
               <span>{repoStats.total_files} files</span>
             </div>
+            <button
+              className="delete-button"
+              onClick={handleDeleteRepository}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <>
+                  <span className="spinner"></span>
+                  Deleting...
+                </>
+              ) : (
+                '🗑️ Delete Repository'
+              )}
+            </button>
+          </div>
+        )}
+
+        {deleteMessage && (
+          <div className={`status-message ${deleteMessage.type}`}>
+            {deleteMessage.type === 'success' && <span className="status-icon">✓</span>}
+            {deleteMessage.type === 'error' && <span className="status-icon">✕</span>}
+            {deleteMessage.text}
           </div>
         )}
       </div>
