@@ -26,14 +26,14 @@ class Settings(BaseSettings):
     groq_max_completion_tokens: int = 1400
 
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
-    retrieval_top_k: int = 8
-    retrieval_fetch_k: int = 24
-    retrieval_max_context_chars: int = 18000
+    retrieval_top_k: int = 2
+    retrieval_fetch_k: int = 6
+    retrieval_max_context_chars: int = 4000
 
-    chunk_size: int = 1200
-    chunk_overlap: int = 180
-    max_file_size_bytes: int = 1_500_000
-    max_repo_size_bytes: int = 100_000_000  # 100MB max repo size
+    chunk_size: int = 600
+    chunk_overlap: int = 50
+    max_file_size_bytes: int = 300_000
+    max_repo_size_bytes: int = 30_000_000  # 30MB max repo size
 
     # Security settings
     cors_allowed_origins: list[str] = Field(default=["http://localhost:3000"], alias="CORS_ALLOWED_ORIGINS")
