@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 
 from app.core.config import get_settings
 from app.embeddings.huggingface import SentenceTransformerEmbeddings
@@ -46,6 +47,15 @@ class RepositoryService:
             branch=target.branch,
             force_refresh=payload.force_refresh,
         )
+
+        # Validate repository size
+        repo_size = sum(f.stat().st_size for f in Path(local_repo_path).rglob('*') if f.is_file())
+        max_size = self.settings.max_repo_size_bytes
+        if repo_size > max_size:
+            raise ValueError(
+                f"Repository size ({repo_size / 1_000_000:.1f}MB) exceeds limit ({max_size / 1_000_000:.1f}MB). "
+                "Please ingest a smaller repository to conserve memory."
+            )
 
         documents, stats = self.chunker.chunk_repository(
             repo_path=local_repo_path,

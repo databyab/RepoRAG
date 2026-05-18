@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     chunk_size: int = 1200
     chunk_overlap: int = 180
     max_file_size_bytes: int = 1_500_000
+    max_repo_size_bytes: int = 100_000_000  # 100MB max repo size
 
     # Security settings
     cors_allowed_origins: list[str] = Field(default=["http://localhost:3000"], alias="CORS_ALLOWED_ORIGINS")
