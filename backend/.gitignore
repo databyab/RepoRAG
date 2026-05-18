@@ -1,9 +1,35 @@
+# Python
 .venv/
 __pycache__/
 .pytest_cache/
 .mypy_cache/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.whl
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data directories
 data/raw_repos/*
 !data/raw_repos/.gitkeep
 data/vector_store/*
 !data/vector_store/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log

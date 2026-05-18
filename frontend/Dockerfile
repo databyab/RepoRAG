@@ -1,15 +1,33 @@
-FROM python:3.12-slim
+# Build stage
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
+RUN npm run build
 
-EXPOSE 8501
+# Production stage
+FROM node:18-alpine
 
-CMD ["streamlit", "run", "streamlit_app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+WORKDIR /app
+
+RUN npm install -g serve
+
+# Create non-root user for security
+RUN addgroup -g 1000 appgroup && \
+    adduser -D -u 1000 -G appgroup appuser
+
+COPY --from=builder /app/dist ./dist
+
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 3000
+
+ENV API_BASE_URL=http://localhost:8000/api/v1
+
+CMD ["serve", "-s", "dist", "-l", "3000"]

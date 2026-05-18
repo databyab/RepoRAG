@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator
+import re
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+
+# Valid GitHub URL pattern (prevents SSRF)
+GITHUB_URL_PATTERN = re.compile(
+    r"^https://github\.com/[a-zA-Z0-9\-_.]+/[a-zA-Z0-9\-_.]+(?:\.git)?/?$"
+)
 
 
 class HealthResponse(BaseModel):
@@ -15,6 +22,22 @@ class IngestRepoRequest(BaseModel):
     repo_url: str = Field(..., description="GitHub repository URL")
     branch: str | None = Field(default=None, description="Optional branch name")
     force_refresh: bool = Field(default=False)
+
+    @field_validator("repo_url", mode="after")
+    @classmethod
+    def validate_github_url(cls, url: str) -> str:
+        """Validate that URL is a valid GitHub repository."""
+        if not GITHUB_URL_PATTERN.match(url):
+            raise ValueError("URL must be a valid GitHub repository URL (https://github.com/owner/repo)")
+        return url.rstrip("/")
+
+    @field_validator("branch", mode="after")
+    @classmethod
+    def validate_branch(cls, branch: str | None) -> str | None:
+        """Validate branch name format (prevent injection)."""
+        if branch and not re.match(r"^[a-zA-Z0-9\-_./@]+$", branch):
+            raise ValueError("Invalid branch name format")
+        return branch
 
 
 class IngestRepoResponse(BaseModel):
@@ -40,6 +63,24 @@ class QuestionRequest(BaseModel):
     top_k: int | None = Field(default=8, ge=1, le=20)
     fetch_k: int | None = Field(default=24, ge=4, le=60)
     max_context_chars: int | None = Field(default=18000, ge=4000, le=40000)
+
+    @field_validator("question", mode="after")
+    @classmethod
+    def validate_question(cls, question: str) -> str:
+        """Validate question is not empty."""
+        if not question or len(question.strip()) == 0:
+            raise ValueError("Question cannot be empty")
+        if len(question) > 5000:
+            raise ValueError("Question too long (max 5000 characters)")
+        return question.strip()
+
+    @field_validator("repo_url", mode="after")
+    @classmethod
+    def validate_repo_url(cls, url: str | None) -> str | None:
+        """Validate repository URL if provided."""
+        if url and not GITHUB_URL_PATTERN.match(url):
+            raise ValueError("URL must be a valid GitHub repository URL")
+        return url
 
     @model_validator(mode="after")
     def validate_repo_identifier(self) -> "QuestionRequest":

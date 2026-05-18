@@ -1,13 +1,70 @@
+# Python
 **/.venv/
 **/venv/
 **/__pycache__/
 *.pyc
 *.pyo
 *.pyd
-.DS_Store
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+*.whl
+dist/
+build/
+*.egg
 
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# Environment variables (CRITICAL - never commit)
+.env
+.env.local
+.env.*.local
 backend/.env
+frontend/.env
+
+# Data and artifacts
 backend/data/raw_repos/
 backend/data/vector_store/
 
-.streamlit/
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Build outputs
+/frontend/dist/
+/frontend/build/
+.cache/
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+
+# Runtime
+pids/
+*.pid
+*.seed
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+docker-compose.override.yml

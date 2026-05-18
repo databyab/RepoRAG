@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     chunk_overlap: int = 180
     max_file_size_bytes: int = 1_500_000
 
+    # Security settings
+    cors_allowed_origins: list[str] = Field(default=["http://localhost:3000"], alias="CORS_ALLOWED_ORIGINS")
+    max_request_size_bytes: int = 50_000_000  # 50MB
+
     data_dir: Path = BACKEND_ROOT / "data"
     raw_repos_dir: Path = data_dir / "raw_repos"
     vector_store_dir: Path = data_dir / "vector_store"
